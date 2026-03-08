@@ -4,7 +4,10 @@ import path from "node:path";
 import type { AgentMessage } from "@mariozechner/pi-agent-core";
 
 import type { OpenClawConfig } from "../../config/config.js";
-import type { WorkspaceBootstrapFile } from "../workspace.js";
+import {
+  DEFAULT_SYSTEM_PROMPT_CONFIG_FILENAME,
+  type WorkspaceBootstrapFile,
+} from "../workspace.js";
 import type { EmbeddedContextFile } from "./types.js";
 
 type ContentBlockWithSignature = {
@@ -154,6 +157,8 @@ export function buildBootstrapContextFiles(
   const maxChars = opts?.maxChars ?? DEFAULT_BOOTSTRAP_MAX_CHARS;
   const result: EmbeddedContextFile[] = [];
   for (const file of files) {
+    // system-prompt.yml is parsed separately as structured config, not injected as a context file
+    if (file.name === DEFAULT_SYSTEM_PROMPT_CONFIG_FILENAME) continue;
     if (file.missing) {
       result.push({
         path: file.name,

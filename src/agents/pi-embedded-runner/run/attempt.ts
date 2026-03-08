@@ -49,7 +49,11 @@ import {
   loadWorkspaceSkillEntries,
   resolveSkillsPromptForRun,
 } from "../../skills.js";
-import { DEFAULT_BOOTSTRAP_FILENAME } from "../../workspace.js";
+import {
+  DEFAULT_BOOTSTRAP_FILENAME,
+  DEFAULT_SYSTEM_PROMPT_CONFIG_FILENAME,
+} from "../../workspace.js";
+import { parseSystemPromptConfig } from "../../system-prompt-config.js";
 import { buildSystemPromptReport } from "../../system-prompt-report.js";
 import { resolveDefaultModelForAgent } from "../../model-selection.js";
 
@@ -194,6 +198,14 @@ export async function runEmbeddedAttempt(
     )
       ? ["Reminder: commit your changes in this workspace after edits."]
       : undefined;
+
+    // Extract system-prompt.yml config (not injected as context file — parsed as structured config)
+    const systemPromptConfigFile = hookAdjustedBootstrapFiles.find(
+      (file) => file.name === DEFAULT_SYSTEM_PROMPT_CONFIG_FILENAME && !file.missing,
+    );
+    const systemPromptConfig = systemPromptConfigFile?.content
+      ? parseSystemPromptConfig(systemPromptConfigFile.content)
+      : null;
 
     const agentDir = params.agentDir ?? resolveOpenClawAgentDir();
 
@@ -359,6 +371,7 @@ export async function runEmbeddedAttempt(
       userTime,
       userTimeFormat,
       contextFiles,
+      systemPromptConfig,
     });
     const systemPromptReport = buildSystemPromptReport({
       source: "run",

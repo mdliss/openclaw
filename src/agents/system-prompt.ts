@@ -3,6 +3,8 @@ import { SILENT_REPLY_TOKEN } from "../auto-reply/tokens.js";
 import { listDeliverableMessageChannels } from "../utils/message-channel.js";
 import type { ResolvedTimeFormat } from "./date-time.js";
 import type { EmbeddedContextFile } from "./pi-embedded-helpers.js";
+import type { SystemPromptConfig } from "./system-prompt-config.js";
+import { renderToolGuidanceLines, renderCustomInstructionLines } from "./system-prompt-config.js";
 
 /**
  * Controls which hardcoded sections are included in the system prompt.
@@ -178,6 +180,8 @@ export function buildAgentSystemPrompt(params: {
     level: "minimal" | "extensive";
     channel: string;
   };
+  /** Parsed system-prompt.yml config for tool guidance and custom instructions. */
+  systemPromptConfig?: SystemPromptConfig | null;
 }) {
   const coreToolSummaries: Record<string, string> = {
     read: "Read file contents",
@@ -351,6 +355,9 @@ export function buildAgentSystemPrompt(params: {
           "- sessions_history: fetch session history",
           "- sessions_send: send to another session",
         ].join("\n"),
+    ...(params.systemPromptConfig
+      ? renderToolGuidanceLines(params.systemPromptConfig, availableTools)
+      : []),
     "TOOLS.md does not control tool availability; it is user guidance for how to use external tools.",
     "If a task is more complex or takes longer, spawn a sub-agent. It will do the work for you and ping you when it's done. You can always check up on it.",
     "",
@@ -492,6 +499,10 @@ export function buildAgentSystemPrompt(params: {
   }
   if (reasoningHint) {
     lines.push("## Reasoning Format", reasoningHint, "");
+  }
+
+  if (params.systemPromptConfig) {
+    lines.push(...renderCustomInstructionLines(params.systemPromptConfig));
   }
 
   const contextFiles = params.contextFiles ?? [];

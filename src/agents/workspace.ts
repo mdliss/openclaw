@@ -28,6 +28,7 @@ export const DEFAULT_HEARTBEAT_FILENAME = "HEARTBEAT.md";
 export const DEFAULT_BOOTSTRAP_FILENAME = "BOOTSTRAP.md";
 export const DEFAULT_MEMORY_FILENAME = "MEMORY.md";
 export const DEFAULT_MEMORY_ALT_FILENAME = "memory.md";
+export const DEFAULT_SYSTEM_PROMPT_CONFIG_FILENAME = "system-prompt.yml";
 
 const TEMPLATE_DIR = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -65,7 +66,8 @@ export type WorkspaceBootstrapFileName =
   | typeof DEFAULT_HEARTBEAT_FILENAME
   | typeof DEFAULT_BOOTSTRAP_FILENAME
   | typeof DEFAULT_MEMORY_FILENAME
-  | typeof DEFAULT_MEMORY_ALT_FILENAME;
+  | typeof DEFAULT_MEMORY_ALT_FILENAME
+  | typeof DEFAULT_SYSTEM_PROMPT_CONFIG_FILENAME;
 
 export type WorkspaceBootstrapFile = {
   name: WorkspaceBootstrapFileName;
@@ -256,6 +258,10 @@ export async function loadWorkspaceBootstrapFiles(dir: string): Promise<Workspac
       name: DEFAULT_BOOTSTRAP_FILENAME,
       filePath: path.join(resolvedDir, DEFAULT_BOOTSTRAP_FILENAME),
     },
+    {
+      name: DEFAULT_SYSTEM_PROMPT_CONFIG_FILENAME,
+      filePath: path.join(resolvedDir, DEFAULT_SYSTEM_PROMPT_CONFIG_FILENAME),
+    },
   ];
 
   entries.push(...(await resolveMemoryBootstrapEntries(resolvedDir)));
@@ -277,7 +283,11 @@ export async function loadWorkspaceBootstrapFiles(dir: string): Promise<Workspac
   return result;
 }
 
-const SUBAGENT_BOOTSTRAP_ALLOWLIST = new Set([DEFAULT_AGENTS_FILENAME, DEFAULT_TOOLS_FILENAME]);
+const SUBAGENT_BOOTSTRAP_ALLOWLIST = new Set([
+  DEFAULT_AGENTS_FILENAME,
+  DEFAULT_TOOLS_FILENAME,
+  DEFAULT_SYSTEM_PROMPT_CONFIG_FILENAME,
+]);
 
 export function filterBootstrapFilesForSession(
   files: WorkspaceBootstrapFile[],
